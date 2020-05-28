@@ -2,10 +2,18 @@
 import React from "react"
 import { PageProps, Link, graphql } from "gatsby"
 
+import algoliasearch from "algoliasearch/lite"
+import {
+  InstantSearch,
+  SearchBox,
+  Hits,
+  Highlight,
+} from "react-instantsearch-dom"
+
 import Bio from "../components/bio"
 import Layout from "../components/layout"
 import SEO from "../components/seo"
-import { rhythm } from "../utils/typography"
+import Post from "../components/post"
 
 type Data = {
   site: {
@@ -30,6 +38,11 @@ type Data = {
   }
 }
 
+const searchClient = algoliasearch(
+  "W6WROEFDLH",
+  "6a83be1381cc5d37d537711884cf9c08"
+);
+
 const BlogIndex = ({ data, location }: PageProps<Data>) => {
   const siteTitle = data.site.siteMetadata.title
   const posts = data.allMarkdownRemark.edges
@@ -38,32 +51,10 @@ const BlogIndex = ({ data, location }: PageProps<Data>) => {
     <Layout location={location} title={siteTitle}>
       <SEO title="All posts" />
       <Bio />
-      {posts.map(({ node }) => {
-        const title = node.frontmatter.title || node.fields.slug
-        return (
-          <article key={node.fields.slug}>
-            <header>
-              <h3
-                style={{
-                  marginBottom: rhythm(1 / 4),
-                }}
-              >
-                <Link style={{ boxShadow: `none` }} to={node.fields.slug}>
-                  {title}
-                </Link>
-              </h3>
-              <small>{node.frontmatter.date}</small>
-            </header>
-            <section>
-              <p
-                dangerouslySetInnerHTML={{
-                  __html: node.frontmatter.description || node.excerpt,
-                }}
-              />
-            </section>
-          </article>
-        )
-      })}
+      <InstantSearch searchClient={searchClient} indexName="blog">
+        <SearchBox />
+        <Hits hitComponent={Post} />
+      </InstantSearch>
     </Layout>
   )
 }

@@ -1,3 +1,35 @@
+require('dotenv').config({
+  path: `.env.${process.env.NODE_ENV || 'development'}`
+})
+
+const blogQuery = `
+  {
+    allMarkdownRemark {
+      nodes {
+        id
+        excerpt
+        frontmatter {
+          title
+          date
+          description
+        }
+        fields {
+          slug
+        }
+        html
+      }
+    }
+  }
+`
+
+const queries = [
+  {
+    query: blogQuery,
+    transformer: ({ data }) => data.allMarkdownRemark.nodes, // optional
+  },
+];
+
+
 module.exports = {
   siteMetadata: {
     title: `Gatsby Starter Blog`,
@@ -12,6 +44,16 @@ module.exports = {
     },
   },
   plugins: [
+    {
+      resolve: "gatsby-plugin-algolia",
+      options: {
+        appId: process.env.ALGOLIA_APP_ID,
+        apiKey: process.env.ALGOLIA_API_KEY,
+        indexName: process.env.ALGOLIA_INDEX_NAME,
+        queries,
+        chunkSize: 1000,
+      },
+    },
     {
       resolve: `gatsby-source-filesystem`,
       options: {
